@@ -1,1 +1,27 @@
-/target
+# Build artifacts
+target/
+**/*.rs.bk
+*.pdb
+
+# Cargo.lock is committed on purpose (workspace root)
+# Uncomment for a pure library crate:
+# Cargo.lock
+
+# Coverage (tarpaulin / llvm-cov / grcov)
+lcov.info
+*.profraw
+*.profdata
+*.gcda
+*.gcno
+*.gcov
+tarpaulin-report.*
+coverage/
+
+# cargo-mutants
+mutants.out
+mutants.out.old/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store

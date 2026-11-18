@@ -1,11 +1,11 @@
 # rust
 
-Classic data structures, algorithms and concurrency primitives in Rust, one module per topic. Cargo workspace with two crates:
+Classic & Parallel data-structures & algorithms in Rust, one module per topic. Cargo workspace with two crates:
 
 | Crate | Contents |
 | --- | --- |
 | `basic` | data structures and algorithms |
-| `parallel` | multi-thread algorithms |
+| `parallel` | concurrent data structures & algorithms |
 
 ```sh
 cargo test
@@ -29,6 +29,7 @@ cargo doc --no-deps --open
 | Module | Contents |
 | --- | --- |
 | `mutex` | N-thread Lamport bakery lock; Two-thread Peterson lock; |
+| `registers` | N-register atomic snapshot (obstruction-free); |
 
 ## Layout
 

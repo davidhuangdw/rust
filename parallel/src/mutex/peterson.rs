@@ -41,6 +41,12 @@ impl Peterson {
     }
 }
 
+impl Default for Peterson {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[must_use = "dropping the guard releases the lock"]
 pub struct Guard {
     p: Arc<Peterson>,

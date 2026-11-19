@@ -30,6 +30,7 @@ cargo doc --no-deps --open
 | --- | --- |
 | `mutex` | N-thread Lamport bakery lock; Two-thread Peterson lock; |
 | `registers` | N-register atomic snapshot (obstruction-free); |
+| `spin` | TTAS lock; CLH queue lock (FIFO); array queue lock (FIFO); |
 
 ## Layout
 

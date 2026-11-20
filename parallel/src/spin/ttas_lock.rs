@@ -1,11 +1,8 @@
 use std::{
     hint::spin_loop,
-    sync::{
-        Arc,
-        atomic::{
-            AtomicBool,
-            Ordering::{Acquire, Relaxed, Release},
-        },
+    sync::atomic::{
+        AtomicBool,
+        Ordering::{Acquire, Relaxed, Release},
     },
 };
 
@@ -23,7 +20,7 @@ impl TtasLock {
         }
     }
 
-    pub fn lock(self: &Arc<Self>) -> Guard {
+    pub fn lock(&self) -> Guard<'_> {
         // while self.busy.load(Relaxed) || self.busy.swap(true, Acquire) {}
         let mut backoff = 1;
         loop {
@@ -31,7 +28,7 @@ impl TtasLock {
                 spin_loop();
             }
             if !self.busy.swap(true, Acquire) {
-                return Guard { l: self.clone() };
+                return Guard { l: self };
             }
 
             //backoff
@@ -44,11 +41,11 @@ impl TtasLock {
 }
 
 #[must_use = "dropping the guard releases the lock"]
-pub struct Guard {
-    l: Arc<TtasLock>,
+pub struct Guard<'a> {
+    l: &'a TtasLock,
 }
 
-impl Drop for Guard {
+impl Drop for Guard<'_> {
     fn drop(&mut self) {
         self.l.busy.store(false, Release);
     }
@@ -57,21 +54,21 @@ impl Drop for Guard {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::Ordering::Relaxed;
-
-    fn lock() -> Arc<TtasLock> {
-        Arc::new(TtasLock::new())
-    }
+    use crate::test_util::{bump, exclusive};
 
     #[test]
     fn lock_marks_busy() {
-        let l = lock();
+        let l = TtasLock::new();
         let _g = l.lock();
         assert!(l.busy.load(Relaxed), "lock() returned without acquiring");
     }
 
     #[test]
     fn mutual_exclusion() {
-        super::super::test_util::exclusive(lock(), TtasLock::lock, 4, 500);
+        let l = TtasLock::new();
+        exclusive(4, 500, |_, c| {
+            let _g = l.lock();
+            bump(c);
+        });
     }
 }

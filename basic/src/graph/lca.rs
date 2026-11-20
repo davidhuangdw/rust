@@ -43,10 +43,10 @@ pub fn tarjan_lca(root: usize, adj: &[Vec<usize>], queries: &[(usize, usize)]) -
     let n = adj.len();
     let mut st = State {
         chd: adj,
-        queries: queries,
+        queries,
         fa: (0..n).collect(),
         vis: vec![false; n],
-        q_idx: repeat_with(|| vec![]).take(n).collect(),
+        q_idx: repeat_with(Vec::new).take(n).collect(),
         ans: vec![0; queries.len()],
     };
     for (i, (a, b)) in queries.iter().enumerate() {

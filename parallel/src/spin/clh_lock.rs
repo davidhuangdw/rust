@@ -1,11 +1,8 @@
 use std::{
     hint::spin_loop,
-    sync::{
-        Arc,
-        atomic::{
-            AtomicBool, AtomicPtr,
-            Ordering::{AcqRel, Acquire, Relaxed, Release},
-        },
+    sync::atomic::{
+        AtomicBool, AtomicPtr,
+        Ordering::{AcqRel, Acquire, Relaxed, Release},
     },
 };
 
@@ -21,7 +18,7 @@ impl ClhLock {
         }
     }
 
-    pub fn lock(self: &Arc<ClhLock>) -> Guard {
+    pub fn lock(&self) -> Guard {
         let me = Node::new_ptr();
         unsafe { (*me).locked.store(true, Relaxed) };
         // AcqRel: Release publishes our `locked = true` to whoever picks `me` up next,
@@ -76,11 +73,15 @@ impl Node {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::Ordering::Relaxed;
+    use crate::test_util::{bump, exclusive};
 
     #[test]
     fn mutual_exclusion() {
-        super::super::test_util::exclusive(Arc::new(ClhLock::new()), ClhLock::lock, 4, 500);
+        let l = ClhLock::new();
+        exclusive(4, 500, |_, c| {
+            let _g = l.lock();
+            bump(c);
+        });
     }
 
     #[test]
@@ -93,14 +94,14 @@ mod tests {
 
     #[test]
     fn locks_do_not_share_nodes() {
-        let a = Arc::new(ClhLock::new());
-        let b = Arc::new(ClhLock::new());
+        let a = ClhLock::new();
+        let b = ClhLock::new();
         let _ga = a.lock();
         let _gb = b.lock();
         assert_ne!(
             a.tail.load(Relaxed),
             b.tail.load(Relaxed),
-            "both locks queued the same thread-local node"
+            "two locks queued the same node"
         );
     }
 }

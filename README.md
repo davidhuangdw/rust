@@ -28,6 +28,7 @@ cargo doc --no-deps --open
 
 | Module | Contents |
 | --- | --- |
+| `monitor` | Bounded queue (condvar); reentrant lock; FIFO reader-writer lock; |
 | `mutex` | N-thread Lamport bakery lock; Two-thread Peterson lock; |
 | `registers` | N-register atomic snapshot (obstruction-free); |
 | `spin` | TTAS lock; CLH queue lock (FIFO); array queue lock (FIFO); |

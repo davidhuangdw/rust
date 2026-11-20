@@ -1,5 +1,5 @@
 pub fn max_palindrome(s: &str) -> String {
-    if s.len() == 0 {
+    if s.is_empty() {
         return "".to_string();
     }
     let cs: Vec<char> = s.chars().collect();

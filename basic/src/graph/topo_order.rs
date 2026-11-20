@@ -57,11 +57,11 @@ mod tests {
             seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
             let n = (seed % 10) as usize;
             let mut adj = vec![vec![]; n];
-            for u in 0..n {
+            for (u, nbrs) in adj.iter_mut().enumerate() {
                 for v in u + 1..n {
                     seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
-                    if seed % 3 == 0 {
-                        adj[u].push(v);
+                    if seed.is_multiple_of(3) {
+                        nbrs.push(v);
                     }
                 }
             }

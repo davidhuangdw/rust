@@ -1,11 +1,8 @@
 use std::{
     hint::spin_loop,
-    sync::{
-        Arc,
-        atomic::{
-            AtomicBool, AtomicUsize,
-            Ordering::{Acquire, Relaxed, Release},
-        },
+    sync::atomic::{
+        AtomicBool, AtomicUsize,
+        Ordering::{Acquire, Relaxed, Release},
     },
 };
 
@@ -22,17 +19,14 @@ impl ArrayLock {
         Self { slots, next }
     }
 
-    pub fn lock(self: &Arc<ArrayLock>) -> Guard {
+    pub fn lock(&self) -> Guard<'_> {
         let me = self.next.fetch_add(1, Relaxed) % self.slots.len();
         let slot = &self.slots[me];
 
         while !slot.load(Relaxed) || !slot.swap(false, Acquire) {
             spin_loop();
         }
-        Guard {
-            l: self.clone(),
-            me,
-        }
+        Guard { l: self, me }
     }
 
     fn unlock(&self, g: &Guard) {
@@ -42,12 +36,12 @@ impl ArrayLock {
 }
 
 #[must_use = "drop to unlock"]
-pub struct Guard {
-    l: Arc<ArrayLock>,
+pub struct Guard<'a> {
+    l: &'a ArrayLock,
     me: usize,
 }
 
-impl Drop for Guard {
+impl Drop for Guard<'_> {
     fn drop(&mut self) {
         self.l.unlock(self);
     }
@@ -56,15 +50,20 @@ impl Drop for Guard {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_util::{bump, exclusive};
 
     #[test]
     fn lock_unlock() {
-        let l = Arc::new(ArrayLock::new(1));
+        let l = ArrayLock::new(1);
         let _g = l.lock();
     }
 
     #[test]
     fn mutual_exclusion() {
-        super::super::test_util::exclusive(Arc::new(ArrayLock::new(4)), ArrayLock::lock, 4, 500);
+        let l = ArrayLock::new(4);
+        exclusive(4, 500, |_, c| {
+            let _g = l.lock();
+            bump(c);
+        });
     }
 }

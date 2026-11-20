@@ -1,11 +1,8 @@
 use std::{
     iter::repeat_with,
-    sync::{
-        Arc,
-        atomic::{
-            AtomicBool, AtomicUsize,
-            Ordering::{Acquire, Release},
-        },
+    sync::atomic::{
+        AtomicBool, AtomicUsize,
+        Ordering::{Acquire, Release},
     },
 };
 
@@ -30,7 +27,7 @@ impl Bakery {
         })
     }
 
-    pub fn lock(self: &Arc<Self>, id: usize) -> Guard {
+    pub fn lock(&self, id: usize) -> Guard<'_> {
         self.vis[id].store(true, Release);
         let me = (0..self.n)
             .filter(|&i| i != id)
@@ -42,20 +39,17 @@ impl Bakery {
         while self.must_wait(id, me) {
             std::hint::spin_loop();
         }
-        Guard {
-            bakery: Arc::clone(self),
-            id,
-        }
+        Guard { bakery: self, id }
     }
 }
 
 #[must_use = "dropping the guard releases the lock"]
-pub struct Guard {
-    bakery: Arc<Bakery>,
+pub struct Guard<'a> {
+    bakery: &'a Bakery,
     id: usize,
 }
 
-impl Drop for Guard {
+impl Drop for Guard<'_> {
     fn drop(&mut self) {
         self.bakery.vis[self.id].store(false, Release);
     }
@@ -64,32 +58,22 @@ impl Drop for Guard {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_util::{bump, exclusive};
     use std::sync::atomic::Ordering::Relaxed;
 
     #[test]
     fn mutual_exclusion() {
         const N: usize = 4;
-        const M: usize = 1000;
-        let (bk, cnt) = (Arc::new(Bakery::new(N)), Arc::new(AtomicUsize::new(0)));
-        std::thread::scope(|s| {
-            for id in 0..N {
-                let (bk, cnt) = (bk.clone(), cnt.clone());
-                s.spawn(move || {
-                    for _ in 0..M {
-                        let _g = bk.lock(id);
-                        let v = cnt.load(Relaxed);
-                        std::thread::yield_now();
-                        cnt.store(v + 1, Relaxed);
-                    }
-                });
-            }
+        let bk = Bakery::new(N);
+        exclusive(N, 1000, |id, c| {
+            let _g = bk.lock(id);
+            bump(c);
         });
-        assert_eq!(cnt.load(Relaxed), N * M);
     }
 
     #[test]
     fn guard_releases_slot() {
-        let bk = Arc::new(Bakery::new(1));
+        let bk = Bakery::new(1);
         drop(bk.lock(0));
         assert!(!bk.vis[0].load(Relaxed));
     }

@@ -93,8 +93,8 @@ impl<T> DList<T> {
     }
 
     fn pop_link(&mut self, cur: &mut DLink<T>) {
-        let prev = prev_link(&cur).unwrap();
-        let next = next_link(&cur).unwrap();
+        let prev = prev_link(cur).unwrap();
+        let next = next_link(cur).unwrap();
         prev.borrow_mut().next = Some(next.clone());
         next.borrow_mut().prev = Some(Rc::downgrade(&prev));
         self.size -= 1;

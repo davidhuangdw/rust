@@ -19,7 +19,7 @@ impl<T> BoundedQue<T> {
         }
     }
 
-    pub fn push(&self, v: T) {
+    pub fn push_back(&self, v: T) {
         let mut mutex = self.mutex.lock().unwrap();
         while !mutex.has_room() {
             mutex = self.has_room.wait(mutex).unwrap();
@@ -28,7 +28,7 @@ impl<T> BoundedQue<T> {
         self.has_item.notify_one();
     }
 
-    pub fn pop(&self) -> T {
+    pub fn pop_front(&self) -> T {
         let mut mutex = self.mutex.lock().unwrap();
         while !mutex.has_item() {
             mutex = self.has_item.wait(mutex).unwrap();
@@ -66,9 +66,9 @@ mod tests {
     #[test]
     fn fifo() {
         let q = BoundedQue::new(2);
-        q.push(1);
-        q.push(2);
-        assert_eq!((q.pop(), q.pop()), (1, 2));
+        q.push_back(1);
+        q.push_back(2);
+        assert_eq!((q.pop_front(), q.pop_front()), (1, 2));
     }
 
     #[test]
@@ -78,12 +78,12 @@ mod tests {
         std::thread::scope(|s| {
             s.spawn(|| {
                 for i in 0..M {
-                    q.push(i);
+                    q.push_back(i);
                 }
             });
             s.spawn(|| {
                 for i in 0..M {
-                    assert_eq!(q.pop(), i);
+                    assert_eq!(q.pop_front(), i);
                 }
             });
         });

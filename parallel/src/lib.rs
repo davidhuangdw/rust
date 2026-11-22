@@ -1,5 +1,7 @@
+// pub mod list;
 pub mod monitor;
 pub mod mutex;
+pub mod que;
 pub mod registers;
 pub mod spin;
 

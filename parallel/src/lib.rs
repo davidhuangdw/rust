@@ -1,4 +1,4 @@
-// pub mod list;
+pub mod list;
 pub mod monitor;
 pub mod mutex;
 pub mod que;

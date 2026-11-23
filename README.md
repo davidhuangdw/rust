@@ -28,8 +28,10 @@ cargo doc --no-deps --open
 
 | Module | Contents |
 | --- | --- |
+| `list` | SimpleSorted (hand-over-hand); OptimisticSorted (lock pair + re-walk validate); LockFree (Harris/Michael, versioned `{removed, next}` cells); |
 | `monitor` | Bounded queue (condvar); reentrant lock; FIFO reader-writer lock; |
 | `mutex` | N-thread Lamport bakery lock; Two-thread Peterson lock; |
+| `que` | Michael–Scott lock-free queue; |
 | `registers` | N-register atomic snapshot (obstruction-free); |
 | `spin` | TTAS lock; CLH queue lock (FIFO); array queue lock (FIFO); |
 

@@ -6,7 +6,7 @@ use std::sync::atomic::{
 use crossbeam_epoch::{self as epoch, Atomic, Owned, Shared};
 
 pub struct LockFreeQue<T> {
-    head: Atomic<Node<T>>, // sentinal sit at head
+    head: Atomic<Node<T>>, // sentinal at head
     tail: Atomic<Node<T>>,
     size: AtomicUsize,
 }

@@ -1,6 +1,6 @@
 # rust
 
-Classic & Parallel data-structures & algorithms in Rust, one module per topic. Cargo workspace with two crates:
+Classic and parallel data structures and algorithms in Rust, organized as a Cargo workspace with two crates:
 
 | Crate | Contents |
 | --- | --- |
@@ -28,12 +28,12 @@ cargo doc --no-deps --open
 
 | Module | Contents |
 | --- | --- |
-| `list` | SimpleSorted (hand-over-hand); OptimisticSorted (lock pair + re-walk validate); LockFree (Harris/Michael, versioned `{removed, next}` cells); |
-| `monitor` | Bounded queue (condvar); reentrant lock; FIFO reader-writer lock; |
-| `mutex` | N-thread Lamport bakery lock; Two-thread Peterson lock; |
-| `que` | Michael–Scott lock-free queue; |
-| `registers` | N-register atomic snapshot (obstruction-free); |
-| `spin` | TTAS lock; CLH queue lock (FIFO); array queue lock (FIFO); |
+| `list` | Hand-over-hand, optimistic, and lock-free (Harris/Michael) sorted lists |
+| `monitor` | Bounded queue (condvar), reentrant lock, FIFO reader-writer lock |
+| `mutex` | Lamport bakery lock (N-thread), Peterson lock (2-thread) |
+| `que` | Michael–Scott lock-free queue |
+| `registers` | Atomic snapshot (N-register, obstruction-free) |
+| `spin` | TTAS lock, CLH queue lock (FIFO), array queue lock (FIFO) |
 
 ## Layout
 

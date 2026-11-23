@@ -51,3 +51,75 @@ pub(crate) fn values<T: Ord + Clone>(head: &Atomic<Node<T>>) -> Vec<T> {
     }
     out
 }
+
+#[cfg(test)]
+pub(crate) trait SortedList: Default + Sync {
+    fn insert(&self, val: usize) -> bool;
+    fn remove(&self, val: &usize) -> bool;
+    fn contains(&self, val: &usize) -> bool;
+    fn values(&self) -> Vec<usize>;
+    fn len(&self) -> usize {
+        self.values().len()
+    }
+}
+
+#[cfg(test)]
+pub(crate) fn check_add_contains_remove<L: SortedList>() {
+    let l = L::default();
+    assert!(l.values().is_empty());
+    assert_eq!(l.len(), 0);
+
+    for v in [10, 20, 30, 5, 25, 40] {
+        assert!(l.insert(v));
+    }
+    assert_eq!(l.values(), [5, 10, 20, 25, 30, 40]);
+    assert!(!l.insert(5));
+
+    assert!(l.contains(&25));
+    assert!(!l.contains(&26));
+
+    assert!(l.remove(&5)); // head
+    assert!(l.remove(&25)); // middle
+    assert!(l.remove(&40)); // tail
+    assert!(!l.remove(&999)); // absent
+    assert!(!l.remove(&5)); // already gone
+    assert_eq!(l.values(), [10, 20, 30]);
+    assert_eq!(l.len(), 3);
+    assert!(!l.contains(&5));
+}
+
+#[cfg(test)]
+pub(crate) fn check_concurrent_adds_then_removes<L: SortedList>() {
+    const P: usize = 4;
+    const M: usize = 400;
+    let l = L::default();
+
+    std::thread::scope(|s| {
+        for _ in 0..P {
+            let l = &l;
+            s.spawn(move || {
+                for i in 0..M {
+                    l.insert(i);
+                }
+            });
+        }
+    });
+    assert_eq!(l.values(), (0..M).collect::<Vec<_>>());
+    assert_eq!(l.len(), M);
+
+    std::thread::scope(|s| {
+        for _ in 0..P {
+            let l = &l;
+            s.spawn(move || {
+                for i in (0..M).step_by(2) {
+                    l.remove(&i);
+                }
+            });
+        }
+    });
+    assert_eq!(
+        l.values(),
+        (0..M).filter(|i| i % 2 == 1).collect::<Vec<_>>()
+    );
+    assert_eq!(l.len(), M / 2);
+}

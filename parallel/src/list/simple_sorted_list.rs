@@ -121,69 +121,33 @@ impl<T: Ord> Drop for SimpleSortedList<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::values, *};
+    use super::{super::*, *};
+
+    impl SortedList for SimpleSortedList<usize> {
+        fn insert(&self, val: usize) -> bool {
+            self.insert(val)
+        }
+        fn remove(&self, val: &usize) -> bool {
+            self.remove(val)
+        }
+        fn contains(&self, val: &usize) -> bool {
+            self.contains(val)
+        }
+        fn values(&self) -> Vec<usize> {
+            values(&self.head)
+        }
+        fn len(&self) -> usize {
+            self.len()
+        }
+    }
 
     #[test]
     fn add_contains_remove() {
-        let l = SimpleSortedList::new();
-        assert!(l.is_empty());
-
-        for v in [10, 20, 30] {
-            l.insert(v);
-        }
-        l.insert(5); // head
-        l.insert(25); // middle
-        l.insert(40); // tail
-        assert_eq!(values(&l.head), [5, 10, 20, 25, 30, 40]);
-        assert!(!l.insert(5));
-
-        assert!(l.contains(&25));
-        assert!(!l.contains(&26));
-
-        assert!(l.remove(&5)); // head
-        assert!(l.remove(&25)); // middle
-        assert!(l.remove(&40)); // tail
-        assert!(!l.remove(&999)); // absent
-        assert_eq!(values(&l.head), [10, 20, 30]);
-        assert_eq!(l.len(), 3);
+        check_add_contains_remove::<SimpleSortedList<usize>>();
     }
 
     #[test]
     fn concurrent_adds_then_removes() {
-        const P: usize = 4;
-        const M: usize = 400;
-        let l = SimpleSortedList::new();
-
-        // every thread inserts the same range: lost updates and double-accepted
-        // duplicates both show up in the result
-        std::thread::scope(|s| {
-            for _ in 0..P {
-                let l = &l;
-                s.spawn(move || {
-                    for i in 0..M {
-                        l.insert(i);
-                    }
-                });
-            }
-        });
-        assert_eq!(values(&l.head), (0..M).collect::<Vec<_>>());
-        assert_eq!(l.len(), M);
-
-        // then every thread removes the even values
-        std::thread::scope(|s| {
-            for _ in 0..P {
-                let l = &l;
-                s.spawn(move || {
-                    for i in (0..M).step_by(2) {
-                        l.remove(&i);
-                    }
-                });
-            }
-        });
-        assert_eq!(
-            values(&l.head),
-            (0..M).filter(|i| i % 2 == 1).collect::<Vec<_>>()
-        );
-        assert_eq!(l.len(), M / 2);
+        check_concurrent_adds_then_removes::<SimpleSortedList<usize>>();
     }
 }

@@ -1,8 +1,12 @@
+pub mod lazy_list;
 pub mod lock_free_list;
 pub mod optimistic_sorted_list;
 pub mod simple_sorted_list;
 
-use std::sync::{Mutex, atomic::Ordering::Relaxed};
+use std::sync::{
+    Mutex,
+    atomic::{AtomicBool, Ordering::Relaxed},
+};
 
 use crossbeam_epoch::{self as epoch, Atomic, Shared};
 
@@ -10,13 +14,15 @@ use crossbeam_epoch::{self as epoch, Atomic, Shared};
 pub(crate) struct Node<T: Ord> {
     pub(crate) val: Option<T>, // immutable; None only for the sentinel
     pub(crate) next: Atomic<Node<T>>,
-    pub(crate) mutex: Mutex<()>, // writers/removers take it
+    pub(crate) removed: AtomicBool, // only for lazy-list
+    pub(crate) mutex: Mutex<()>,    // writers/removers take it
 }
 
 impl<T: Ord> Node<T> {
     pub(crate) fn new(val: Option<T>, next: Shared<'_, Node<T>>) -> Self {
         Self {
             val,
+            removed: AtomicBool::new(false),
             next: Atomic::from(next),
             mutex: Mutex::new(()),
         }

@@ -28,10 +28,10 @@ cargo doc --no-deps --open
 
 | Module | Contents |
 | --- | --- |
-| `list` | Hand-over-hand, optimistic, and lock-free (Harris/Michael) sorted lists |
+| `list` | Hand-over-hand, optimistic, lazy, and lock-free (Harris/Michael) sorted lists |
 | `monitor` | Bounded queue (condvar), reentrant lock, FIFO reader-writer lock |
 | `mutex` | Lamport bakery lock (N-thread), Peterson lock (2-thread) |
-| `que` | Michael–Scott lock-free queue |
+| `que` | Michael–Scott lock-free queue; dual rendezvous sync-queue |
 | `registers` | Atomic snapshot (N-register, obstruction-free) |
 | `spin` | TTAS lock, CLH queue lock (FIFO), array queue lock (FIFO) |
 

@@ -4,6 +4,7 @@ pub mod mutex;
 pub mod que;
 pub mod registers;
 pub mod spin;
+pub mod stack;
 
 #[cfg(test)]
 pub(crate) mod test_util {

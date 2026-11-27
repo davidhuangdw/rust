@@ -2,6 +2,7 @@ pub mod kmp;
 pub mod manacher;
 pub mod rotate_min;
 pub mod trie;
+pub mod z_alg;
 
 #[cfg(test)]
 pub(crate) mod test_util {

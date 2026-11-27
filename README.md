@@ -17,12 +17,12 @@ cargo doc --no-deps --open
 | Module | Contents |
 | --- | --- |
 | `bst` | Treap, multiset |
-| `graph` | LCA, topological order |
+| `graph` | LCA, shortest paths (Dijkstra, Floyd, Johnson), topological order |
 | `interval` | Segment tree, binary indexed tree |
 | `linked_list` | Singly/doubly linked, array-backed, tuple-based list |
 | `misc` | Binary heap, monotonic queue, union-find |
 | `sort` | Quick sort, k-th of two/many sorted arrays, 2/3/4-sum |
-| `string` | KMP, Manacher, min rotation, trie |
+| `string` | KMP, Manacher, min rotation, trie, Z-algorithm |
 
 ## Modules (`parallel`)
 

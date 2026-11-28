@@ -3,7 +3,7 @@ use std::sync::atomic::{
     Ordering::{Acquire, Relaxed, Release},
 };
 
-use crossbeam_epoch::{self as epoch, Atomic, Owned, Shared};
+use crossbeam_epoch::{self as epoch, Atomic, Guard, Owned, Shared};
 
 pub struct LockFreeStack<T> {
     head: Atomic<Node<T>>,
@@ -35,34 +35,50 @@ impl<T> LockFreeStack<T> {
     pub fn push(&self, mut val: T) {
         let g = epoch::pin();
         loop {
-            let head = self.head.load(Acquire, &g);
-            let node = Owned::new(Node::new(val, head));
-            match self.head.compare_exchange(head, node, Release, Relaxed, &g) {
-                Ok(_) => {
-                    self.size.fetch_add(1, Relaxed);
-                    return;
-                }
-                Err(e) => val = e.new.into_box().val,
+            match self.try_push(val, &g) {
+                Ok(_) => return,
+                Err(v) => val = v,
             }
+        }
+    }
+
+    pub fn try_push(&self, val: T, g: &Guard) -> Result<(), T> {
+        let head = self.head.load(Acquire, g);
+        let node = Owned::new(Node::new(val, head));
+        match self.head.compare_exchange(head, node, Release, Relaxed, g) {
+            Ok(_) => {
+                self.size.fetch_add(1, Relaxed);
+                Ok(())
+            }
+            Err(e) => Err(e.new.into_box().val),
         }
     }
 
     pub fn pop(&self) -> Option<T> {
         let g = epoch::pin();
         loop {
-            let head = self.head.load(Acquire, &g);
-            if head.is_null() {
-                return None;
+            match self.try_pop(&g) {
+                Ok(v) => return v,
+                Err(_) => continue,
             }
-            let head_nxt = unsafe { head.deref() }.next.load(Acquire, &g);
-            if self
-                .head
-                .compare_exchange(head, head_nxt, Release, Relaxed, &g)
-                .is_ok()
-            {
+        }
+    }
+
+    pub fn try_pop(&self, g: &Guard) -> Result<Option<T>, ()> {
+        let head = self.head.load(Acquire, g);
+        if head.is_null() {
+            return Ok(None);
+        }
+        let head_nxt = unsafe { head.deref() }.next.load(Acquire, g);
+        match self
+            .head
+            .compare_exchange(head, head_nxt, Release, Relaxed, g)
+        {
+            Ok(_) => {
                 self.size.fetch_sub(1, Relaxed);
-                return Some(unsafe { head.into_owned() }.into_box().val);
+                Ok(Some(unsafe { head.into_owned() }.into_box().val))
             }
+            Err(_) => Err(()),
         }
     }
 }

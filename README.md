@@ -21,7 +21,7 @@ cargo doc --no-deps --open
 | `interval` | Segment tree, binary indexed tree |
 | `linked_list` | Singly/doubly linked, array-backed, tuple-based list |
 | `misc` | Binary heap, monotonic queue, union-find |
-| `sort` | Quick sort, k-th of two/many sorted arrays, 2/3/4-sum |
+| `sort` | Quick sort, skip list, k-th of two/many sorted arrays, 2/3/4-sum |
 | `string` | KMP, Manacher, min rotation, trie, Z-algorithm |
 
 ## Modules (`parallel`)
@@ -34,7 +34,7 @@ cargo doc --no-deps --open
 | `que` | Michael–Scott lock-free queue; dual rendezvous sync-queue |
 | `registers` | Atomic snapshots: obstruction-free (two-pass validation) and wait-free (HS collect) |
 | `spin` | TTAS lock, CLH queue lock (FIFO), array queue lock (FIFO) |
-| `stack` | Lock-free (Treiber) stack |
+| `stack` | Lock-free (Treiber) stack, elimination backoff stack |
 
 ## Lock-free notes
 
